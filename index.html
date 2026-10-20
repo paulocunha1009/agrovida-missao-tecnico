@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operação AgroVida • Do campo ao computador</title>
+<style>
+:root{
+  --verde:#2e7d32; --verde-esc:#1b5e20; --verde-cl:#e8f5e9; --terra:#8d6e63; --terra-cl:#efebe9;
+  --amarelo:#f9a825; --vermelho:#c62828; --azul:#1565c0; --texto:#263238; --cinza:#607d8b; --fundo:#f6f4ef; --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--fundo);color:var(--texto);font-size:16px;line-height:1.5}
+header{background:linear-gradient(135deg,var(--verde-esc),var(--verde));color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:1.35rem}
+header .sub{font-size:.85rem;opacity:.9}
+.dupla{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dupla input{padding:6px 8px;border-radius:6px;border:none;font-size:.9rem;width:150px}
+.dupla input.est{width:80px}
+.xpbox{background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-weight:700;white-space:nowrap}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;background:#fff;border-bottom:3px solid var(--verde-cl);position:sticky;top:0;z-index:5}
+nav button{border:2px solid var(--verde);background:#fff;color:var(--verde);padding:8px 14px;border-radius:20px;font-weight:600;cursor:pointer;font-size:.92rem}
+nav button.ativo{background:var(--verde);color:#fff}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+section{display:none}
+section.ativo{display:block}
+h2{color:var(--verde-esc);margin:.2em 0 .4em}
+h3{color:var(--terra);margin:1.2em 0 .4em}
+.card{background:var(--card);border-radius:12px;padding:16px 18px;box-shadow:0 2px 6px rgba(0,0,0,.08);margin-bottom:14px}
+.dica{background:var(--terra-cl);border-left:5px solid var(--terra);padding:10px 14px;border-radius:8px;margin:10px 0}
+.alerta{background:#fff8e1;border-left:5px solid var(--amarelo);padding:10px 14px;border-radius:8px;margin:10px 0}
+.btn{background:var(--verde);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:.95rem}
+.btn:hover{background:var(--verde-esc)}
+.btn.sec{background:#fff;color:var(--verde);border:2px solid var(--verde)}
+.btn:disabled{background:#b0bec5;cursor:default}
+.ok{color:var(--verde);font-weight:700}
+.erro{color:var(--vermelho);font-weight:700}
+.fb{margin-top:8px;min-height:1.2em}
+/* inicio */
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.passo{background:var(--verde-cl);border-radius:10px;padding:12px}
+.passo b{color:var(--verde-esc)}
+/* flashcards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.flash{perspective:900px;height:190px}
+.flash .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.flash.virado .in{transform:rotateY(180deg)}
+.flash .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.flash .frente{background:#fff;border:2px solid var(--verde);cursor:pointer}
+.flash .verso{background:var(--verde-cl);border:2px solid var(--verde);transform:rotateY(180deg)}
+.flash .num{font-size:.8rem;color:var(--cinza);font-weight:700}
+.flash .q{font-weight:600}
+.flash .acoes{display:flex;gap:6px}
+.flash .acoes button{flex:1;padding:6px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
+.b-ok{background:var(--verde);color:#fff}.b-no{background:#ffcdd2;color:var(--vermelho)}
+.flash .marcado{font-weight:700;text-align:center}
+/* missao 1 */
+.etapa{border-left:5px solid var(--verde);}
+table.calc{width:100%;border-collapse:collapse;margin-top:6px}
+table.calc td,table.calc th{padding:8px;border-bottom:1px solid #e0e0e0;text-align:left;vertical-align:middle}
+table.calc th{background:var(--verde-cl);color:var(--verde-esc)}
+table.calc input{width:120px;padding:6px 8px;border:2px solid #b0bec5;border-radius:6px;font-size:1rem}
+input.certo{border-color:var(--verde)!important;background:#e8f5e9}
+input.errado{border-color:var(--vermelho)!important;background:#ffebee}
+.mcq{margin:10px 0 16px}
+.mcq .opc{display:block;width:100%;text-align:left;margin:5px 0;padding:9px 12px;border-radius:8px;border:2px solid #cfd8dc;background:#fff;cursor:pointer;font-size:.95rem}
+.mcq .opc:hover{border-color:var(--verde)}
+.mcq .opc.certa{border-color:var(--verde);background:#e8f5e9}
+.mcq .opc.errada{border-color:var(--vermelho);background:#ffebee}
+.mcq .expl{display:none;margin-top:6px;background:var(--verde-cl);padding:8px 12px;border-radius:8px}
+/* missao 2 */
+.m2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:820px){.m2{grid-template-columns:1fr}}
+#placa{width:100%;height:auto;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+#placa .hot{cursor:pointer;transition:filter .15s}
+#placa .hot:hover{filter:brightness(1.25) drop-shadow(0 0 4px #ffeb3b)}
+#placa .hot.achado{filter:drop-shadow(0 0 5px #00e676)}
+#placa .hot.piscaerro{animation:pisca .5s 2}
+@keyframes pisca{50%{filter:drop-shadow(0 0 8px #ff1744) brightness(1.4)}}
+.modos{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+#info h3{margin-top:0}
+.alvo{font-size:1.25rem;font-weight:700;color:var(--azul);background:#e3f2fd;padding:10px;border-radius:8px;text-align:center}
+.lista-achados{font-size:.9rem;columns:2}
+.caminho{display:grid;gap:10px}
+.caminho .linha{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border-radius:10px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.caminho .n{background:var(--verde);color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.caminho select{padding:7px;border-radius:6px;border:2px solid #b0bec5;font-size:.95rem;max-width:100%}
+.caminho select.certo{border-color:var(--verde);background:#e8f5e9}
+.caminho select.errado{border-color:var(--vermelho);background:#ffebee}
+.fluxo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.fluxo span{padding:6px 10px;border-radius:6px;font-weight:600;font-size:.88rem}
+.f-e{background:#e3f2fd}.f-p{background:#fff3e0}.f-a{background:#ede7f6}.f-s{background:#e8f5e9}
+/* relatorio */
+.barra{height:18px;background:#eceff1;border-radius:9px;overflow:hidden}
+.barra div{height:100%;background:linear-gradient(90deg,var(--verde),#66bb6a);transition:width .4s}
+table.rel{width:100%;border-collapse:collapse}
+table.rel td,table.rel th{padding:8px;border-bottom:1px solid #e0e0e0;text-align:left}
+.nivel{font-size:1.4rem;font-weight:800;color:var(--verde-esc);text-align:center;margin:10px 0}
+.selo{font-size:3rem;text-align:center}
+footer{text-align:center;color:var(--cinza);font-size:.8rem;padding:10px}
+
+:root{--verde:#076c65;--verde-esc:#075a58;--verde-cl:#e0f5ee;--terra:#67509a;--terra-cl:#f0ebfa;--texto:#172c40;--cinza:#51677a;--fundo:#edf3f8;--azul:#155ab3}
+body{background:radial-gradient(ellipse at top right,#bce9e3,transparent 55%),#edf3f8}header{padding:24px max(24px,calc((100vw - 1200px)/2));background:#091d32;border-bottom:1px solid #3b6b80}header h1{font-size:1.65rem;letter-spacing:-.6px}header .sub{color:#a6e8dc;opacity:1}header input{min-height:44px}nav{background:#102b42;padding:12px;gap:8px;justify-content:center;border:0;box-shadow:0 8px 24px #071d3220}nav button{background:#17384f;color:#e4f1fc;border:1px solid #54778b;border-radius:9px;font-size:.8rem;min-height:44px}nav button.ativo{background:#a4f3d1;color:#082d2e;border-color:#a4f3d1}main{max-width:1200px;padding-top:28px}h2{font-size:1.8rem;letter-spacing:-.7px}h3{color:#334e70}.card{border:1px solid #d7e3ec;box-shadow:0 8px 24px #16364c08;border-radius:18px;padding:24px}.btn{min-height:44px;border-radius:9px}.passo{border:1px solid #c8dedf;background:white;padding:20px}.passo b{display:inline-block;margin-bottom:6px}button,input,select,textarea{font:inherit}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #b85b00;outline-offset:4px}button{touch-action:manipulation}input,select,textarea{color:#172c40;background:white}textarea{width:100%;min-height:110px;padding:12px;border:1px solid #8ba2b5;border-radius:8px}.hero{display:grid;grid-template-columns:1.1fr 1fr;background:#0b233a;color:#edf7ff;border:1px solid #326179;border-radius:22px;overflow:hidden;margin-bottom:24px}.hero-copy{padding:35px}.hero h2{color:white;font-size:clamp(2rem,4vw,3.4rem);line-height:1.07;margin:16px 0}.eyebrow{font-size:.75rem;font-weight:800;letter-spacing:2px;color:#9cefc9}.hero p{color:#c1d6e5}.hero svg{width:100%;height:100%;min-height:280px}.tag{display:inline-block;padding:5px 10px;border:1px solid #527b8c;border-radius:30px;color:#b4f5db;font-size:.75rem}.hud{background:white;border:1px solid #cadce7;border-radius:14px;padding:16px 20px;margin-bottom:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}.hud progress{accent-color:#08736b;flex:1;min-width:120px}.hud small{color:#51677a}.tools{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.illustrations{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}.illustrations figure{margin:0;background:#102b42;color:#e8f7ff;border-radius:15px;padding:20px}.illustrations svg{width:100%;height:110px}.illustrations figcaption{font-size:.85rem}.flash{height:250px}.flash .face{padding:18px}.flash .acoes{flex-wrap:wrap}.flash .acoes button{min-height:44px}.flash:not(.virado) .verso{visibility:hidden}.flash.virado .frente{visibility:hidden}#placa .hot:focus{outline:none;filter:drop-shadow(0 0 6px #fff)}.calc{display:block;overflow-x:auto}.calc input{min-height:44px}.ok{color:#08634d}.erro{color:#a52231}.mission-done{border:2px solid #08736b}.badge{display:inline-block;border:1px solid #076c65;border-radius:30px;padding:7px 12px;margin:5px;background:#e0f5ee}.support{background:#eaf1fa;border:1px solid #bccfe5;border-radius:14px;padding:20px;margin:20px 0}.skip{position:absolute;left:12px;top:-70px;background:white;padding:12px;z-index:99}.skip:focus{top:12px}@media(max-width:760px){.hero{grid-template-columns:1fr}.hero-copy{padding:24px}.hero svg{min-height:200px;max-height:270px}.illustrations{grid-template-columns:1fr}.illustrations figure{display:flex;align-items:center;gap:15px}.illustrations svg{width:100px;flex-shrink:0}nav{position:static}h2{font-size:1.5rem}.card{padding:18px}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}@media print{header,nav,footer,.hud,.tools,.skip{display:none!important}section{display:none!important}#relatorio{display:block!important}.card{box-shadow:none}body{background:white}}
+
+.territory-header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:34px 0 16px}.territory-header .eyebrow{color:#517a6b}.territory-header h2{color:#203e3b;margin-top:7px}.map-chip{font-size:.78rem;padding:9px 13px;border:1px solid #c7d8c8;border-radius:30px;white-space:nowrap;background:#f8f9ee}.territory{border:1px solid #c7d4bd;border-radius:22px;overflow:hidden;background:#e8e8cb;box-shadow:0 15px 35px #21453412}.territory>svg{width:100%;display:block}.map-caption{padding:13px 22px;display:flex;justify-content:space-between;gap:15px;background:#fcfaef;font-size:.8rem;color:#456559}.mission-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}.mission-tile{text-align:left;border:1px solid #c7d7cd;border-radius:15px;background:#fffef8;padding:21px;cursor:pointer;position:relative;color:#203e3b;transition:transform .2s,box-shadow .2s}.mission-tile:hover{transform:translateY(-3px);box-shadow:0 10px 24px #203e3b15}.mission-tile .mission-number{font-family:monospace;font-size:.8rem;color:#547166}.mission-tile h3{margin:12px 0 8px;color:#203e3b;font-size:1.08rem}.mission-tile p{font-size:.85rem;margin:0 0 16px;min-height:42px;color:#50675d}.mission-tile .status{font-size:.78rem;font-weight:700;color:#075f52}.mission-tile.done{background:#e4f4e6;border-color:#4e9474}.callout{display:flex;align-items:flex-start;gap:18px;background:#123b3c;color:#f2f7e9;border-radius:17px;padding:24px;margin-bottom:23px}.callout .avatar{width:48px;height:48px;border:1px solid #78b39c;border-radius:14px;display:grid;place-items:center;font-size:24px;flex-shrink:0}.callout small{color:#c4dfc7;letter-spacing:1px;font-size:.7rem;font-weight:700}.callout p{margin:7px 0 0}.callout strong{color:#f5d489}.bench{border:1px solid #bdcdc0;background:#f9faef;border-radius:17px;padding:24px;margin:24px 0}.bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}.bench label{font-weight:650;display:block;font-size:.9rem}.bench select{width:100%;padding:12px;border:1px solid #839b8b;border-radius:8px;margin:8px 0 15px}.bench-feedback{padding:16px;background:white;border-radius:10px;margin-top:15px}.next-stop{margin:26px 0;display:flex;justify-content:space-between;align-items:center;padding:18px;background:#f0f4e7;border:1px solid #ccdac3;border-radius:12px;gap:12px}body{background:radial-gradient(ellipse at top right,#d0e5d6,transparent 60%),#f2f3e9}.hero{background:#112f30;border-color:#42766a}.hero p{color:#d0e0d6}header{background:#102f30}nav{background:#173a39}nav button{background:#214a46;border-color:#678a7c}header .sub{color:#c1dfcd}.hud{background:#fffef8}.card{border-color:#d9e1d4}h2{color:#214d43}.illustrations figure{background:#173f3d}@media(max-width:800px){.mission-grid{grid-template-columns:1fr 1fr}.bench-grid{grid-template-columns:1fr}.territory-header{align-items:flex-start;flex-direction:column}}@media(max-width:500px){.mission-grid{grid-template-columns:1fr}.map-caption{flex-direction:column;gap:4px}.next-stop{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<a class="skip" href="#conteudo">Pular para a atividade</a>
+
+<header>
+  <div>
+    <h1>AGROVIDA <span style="font-weight:400;font-size:.65em;color:#a6e8dc">/ operação de campo</span></h1>
+    <div class="sub">AMC · Aula 3 · Armazenamento e Mapa da Placa-mãe</div>
+  </div>
+  <div class="dupla">
+    <input id="aluno1" placeholder="Equipe (apelido)" aria-label="Apelido da equipe">
+    <input id="aluno2" placeholder="Papéis da dupla" aria-label="Papéis da dupla">
+    <input id="estacao" class="est" placeholder="PC-__" aria-label="Estação de trabalho">
+    <span class="xpbox">XP: <span id="xpTopo">0</span></span>
+  </div>
+</header>
+
+<nav id="menu">
+  <button data-s="inicio" class="ativo">Início</button>
+  <button data-s="revisao">1 · Revisão</button>
+  <button data-s="m1">2 · Missão 1: Armazenamento</button>
+  <button data-s="m2">3 · Missão 2: Placa-mãe</button>
+  <button data-s="caminho">4 · Caminho do Dado</button>
+  <button data-s="casos">5 · Estudos de Caso</button>
+  <button data-s="boss">6 · Boss: implantação</button><button data-s="relatorio">Relatório</button>
+</nav>
+
+<main id="conteudo" tabindex="-1"><div class="hud"><b id="level">Equipe em formação</b><progress id="globalProgress" max="334" value="0" aria-label="Progresso em XP"></progress><span id="progressText">0 / 334 XP</span><small id="saveState" role="status">Salvamento local</small></div>
+
+<!-- INICIO -->
+<section id="inicio" class="ativo"><div class="hero"><div class="hero-copy"><span class="eyebrow">ESCOLA DO CAMPO // MISSÃO DA SEMANA</span><h2>Do campo<br>ao computador.</h2><p>As fotos das visitas chegaram. A associação precisa guardar as fichas e preparar o computador da feira. Seu trabalho: conectar cada necessidade a uma decisão técnica.</p><span class="tag">OFFLINE</span> <span class="tag">SEM CRONÔMETRO</span> <span class="tag">MISSÃO EM DUPLA</span><div class="tools"><button class="btn" onclick="irPara('revisao')">Iniciar operação →</button><button class="btn sec" onclick="document.getElementById('regras').scrollIntoView()">Como jogar</button></div></div><svg viewBox="0 0 520 360" role="img" aria-label="Ilustração de uma central tecnológica conectada ao campo"><defs><pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#284c64" stroke-width=".7"/></pattern><linearGradient id="screen"><stop stop-color="#32dbb3"/><stop offset="1" stop-color="#287fb6"/></linearGradient></defs><rect width="520" height="360" fill="url(#grid)"/><circle cx="285" cy="168" r="136" fill="none" stroke="#346177" stroke-dasharray="5 9"/><path d="M20 290L150 220 290 280 490 190V360H20Z" fill="#174d4c"/><path d="M10 335L150 263M80 360L215 283M260 355L470 240M320 360L510 259" stroke="#45866d" stroke-width="13"/><rect x="147" y="67" width="253" height="173" rx="13" fill="#143d55" stroke="#86dacb" stroke-width="2"/><rect x="161" y="81" width="225" height="141" rx="5" fill="#081c32"/><path d="M181 190L221 151 251 170 291 123 324 140 366 101" fill="none" stroke="url(#screen)" stroke-width="5"/><path d="M261 240V267H228M261 267H304" stroke="#93b9ca" stroke-width="10"/><rect x="60" y="123" width="60" height="90" rx="8" fill="#17354e" stroke="#71dcb7"/><circle cx="90" cy="144" r="5" fill="#a4f3d1"/><path d="M74 165H105M74 178H105M74 191H95M120 164H147M400 160H456V245" stroke="#7fe6ce" stroke-width="3" fill="none"/><circle cx="456" cy="255" r="14" fill="#9cebc2"/><path d="M444 255L453 263 468 247" stroke="#123d42" stroke-width="3" fill="none"/><text x="180" y="105" fill="#a6e8dc" font-family="monospace" font-size="11">AGROVIDA • SISTEMA ATIVO</text></svg></div>
+<div class="territory-header"><div><span class="eyebrow">SEU TERRITÓRIO DE MISSÕES</span><h2>Uma comunidade. Muitas conexões.</h2></div><span class="map-chip">Aula 3 · AMC · 500 produtores</span></div>
+<div class="territory"><svg viewBox="0 0 1000 475" role="img" aria-label="Mapa ilustrado do AgroVida: propriedades rurais, associação, laboratório e feira conectados por caminhos. Os botões abaixo abrem cada missão."><defs><pattern id="fieldRows" width="23" height="23" patternUnits="userSpaceOnUse" patternTransform="rotate(-25)"><rect width="23" height="23" fill="#bad1a0"/><path d="M0 1H23" stroke="#8da976" stroke-width="7"/></pattern><pattern id="orchard" width="37" height="37" patternUnits="userSpaceOnUse"><rect width="37" height="37" fill="#dce0ad"/><circle cx="18" cy="18" r="10" fill="#829d64"/><circle cx="15" cy="14" r="5" fill="#a6bb80"/></pattern><filter id="shadow"><feDropShadow dx="0" dy="9" stdDeviation="8" flood-color="#24443e" flood-opacity=".18"/></filter></defs><rect width="1000" height="475" fill="#e8e8cb"/><path d="M0 0H340L290 155 0 202Z" fill="url(#fieldRows)"/><path d="M735 0H1000V180L810 147Z" fill="url(#orchard)"/><path d="M0 360L250 305 340 475H0Z" fill="url(#orchard)"/><path d="M760 330L1000 310V475H710Z" fill="url(#fieldRows)"/><path d="M0 245Q200 180 390 242T720 260 1000 207" stroke="#b1d5da" stroke-width="35" fill="none"/><path d="M170 145L430 140 720 150 830 322 565 363 370 310 170 145" stroke="#f9f4df" stroke-width="23" fill="none" stroke-linejoin="round"/><path d="M170 145L430 140 720 150 830 322 565 363 370 310 170 145" stroke="#bea982" stroke-width="2" stroke-dasharray="6 7" fill="none"/>
+<g filter="url(#shadow)"><g transform="translate(105 68)"><rect x="3" y="47" width="119" height="67" rx="3" fill="#fff9e6"/><path d="M-9 49L62 3 133 49Z" fill="#b76345"/><rect x="50" y="77" width="25" height="37" fill="#5f7c6b"/><rect x="14" y="62" width="24" height="23" fill="#a8cad1"/><rect x="87" y="62" width="24" height="23" fill="#a8cad1"/><path d="M-40 100V63M-55 81H-25M145 105V65M131 81H160" stroke="#a98757" stroke-width="4"/></g>
+<g transform="translate(365 65)"><rect x="5" y="35" width="137" height="85" rx="4" fill="#f4edda"/><path d="M-7 38L72 0 153 38Z" fill="#587d7c"/><rect x="19" y="51" width="108" height="22" rx="3" fill="#235b58"/><text x="73" y="67" fill="white" text-anchor="middle" font-size="11" font-family="Arial">ASSOCIAÇÃO</text><rect x="60" y="85" width="28" height="35" fill="#aa7e50"/></g>
+<g transform="translate(665 65)"><rect x="0" y="18" width="145" height="103" rx="6" fill="#f7f5e5"/><path d="M-9 18L73 -9 154 18Z" fill="#285d6a"/><rect x="15" y="40" width="115" height="17" fill="#8dc4c0"/><rect x="18" y="72" width="43" height="29" rx="3" fill="#153a50"/><rect x="84" y="72" width="43" height="29" rx="3" fill="#153a50"/><path d="M25 86H52M91 86H118" stroke="#75ddba" stroke-width="3"/></g>
+<g transform="translate(765 276)"><rect x="0" y="30" width="125" height="63" fill="#b38e58"/><path d="M-10 30L10 0H116L137 30Z" fill="#f2bc54"/><path d="M15 0V30M48 0V30M80 0V30M112 0V30" stroke="#fff4cd" stroke-width="15"/><rect x="12" y="45" width="100" height="19" fill="#f1dfb1"/><g fill="#5d9866"><circle cx="29" cy="48" r="9"/><circle cx="52" cy="48" r="9"/><circle cx="80" cy="48" r="9"/></g></g>
+<g transform="translate(495 305)"><rect x="0" y="10" width="125" height="72" rx="5" fill="#244b60"/><rect x="10" y="20" width="105" height="48" fill="#88c9bc"/><path d="M-15 85H140L122 96H0Z" fill="#617b83"/><path d="M35 45L52 58 84 30" stroke="#235b58" stroke-width="6" fill="none"/></g>
+<g transform="translate(310 262)"><rect width="90" height="83" rx="5" fill="#f4edda"/><rect x="8" y="8" width="74" height="20" fill="#8b6c43"/><rect x="17" y="40" width="56" height="34" rx="3" fill="#305a64"/><path d="M25 48H65M25 58H65" stroke="#94d2c1" stroke-width="3"/></g></g>
+<g font-family="Segoe UI,Arial" font-size="13" font-weight="700" fill="#244b46"><text x="166" y="211" text-anchor="middle">VISITAS DE CAMPO</text><text x="439" y="211" text-anchor="middle">ASSOCIAÇÃO</text><text x="738" y="211" text-anchor="middle">LABORATÓRIO</text><text x="831" y="403" text-anchor="middle">FEIRA AGROVIDA</text><text x="558" y="432" text-anchor="middle">BANCA DE IMPLANTAÇÃO</text><text x="354" y="374" text-anchor="middle">ARQUIVO COMUNITÁRIO</text></g>
+<g fill="#126c61" stroke="#fff8e5" stroke-width="3"><circle cx="170" cy="53" r="17"/><circle cx="438" cy="46" r="17"/><circle cx="738" cy="42" r="17"/><circle cx="831" cy="257" r="17"/><circle cx="559" cy="290" r="17"/><circle cx="354" cy="246" r="17"/></g><g fill="white" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle"><text x="170" y="58">1</text><text x="438" y="51">2</text><text x="738" y="47">3</text><text x="831" y="262">4</text><text x="559" y="295">6</text><text x="354" y="251">5</text></g></svg><div class="map-caption"><span>Território ilustrativo do projeto</span><b id="territoryStatus">0 de 6 frentes concluídas</b></div></div>
+<div class="mission-grid" id="missionMap"></div>
+<div class="support" id="regras"><h3>Como a equipe trabalha</h3><p><b>Missão do jogo:</b> colocar a infraestrutura do AgroVida em condições de atender a comunidade.<br><b>Aprendizagem da semana:</b> calcular capacidade, distinguir SATA e NVMe, identificar componentes, explicar o caminho dos dados e planejar backup.</p><p>Explorem → tomem uma decisão → confiram o feedback → revisem → expliquem. Alternem os papéis: <b>Piloto</b> opera; <b>Auditor</b> confere e justifica. Todos os locais estão disponíveis, sem cronômetro ou ranking.</p><p>Pistas e retomadas são gratuitas. O mapa avança com as atividades resolvidas; o parecer final depende da avaliação técnica do professor. Hoje, usem o simulador: a abertura do gabinete fica para a aula prática.</p><button class="btn" onclick="irPara('revisao')">Atender o primeiro chamado →</button></div>
+</section>
+
+<!-- REVISAO -->
+<section id="revisao"><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>01 / VISITAS DE CAMPO</small><p><b>A equipe voltou das visitas.</b> Antes de receber os arquivos, alinhem os conceitos. <strong>Como distinguir memória, armazenamento e conexão?</strong> Leiam as cartas e expliquem a resposta à dupla.</p></div></div>
+  <h2>1 · Revisão relâmpago</h2>
+  <p>Leiam a pergunta, respondam em voz alta para a dupla e cliquem na carta para ver a resposta. Sejam honestos: marquem <b>Acertei</b> ou <b>Errei</b>. Cada carta compreendida vale 2 XP. Se precisar, releia e retome gratuitamente.</p>
+  <div class="cards" id="cards"></div>
+  <p id="revResumo" class="fb"></p>
+</section>
+
+<!-- MISSAO 1 -->
+<section id="m1"><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>02 / ASSOCIAÇÃO</small><p><b>O acervo vai crescer por três anos.</b> A associação precisa de uma compra bem justificada. <strong>Quanto espaço reservar para fotos, fichas e sistema?</strong> Calculem antes de escolher as peças.</p></div></div><div class="illustrations"><figure><svg viewBox="0 0 200 110" role="img" aria-label="Disco rígido com prato e braço mecânico"><rect x="35" y="8" width="130" height="95" rx="10" fill="#355369" stroke="#94c8d2"/><circle cx="100" cy="53" r="35" fill="#abc6ce"/><circle cx="100" cy="53" r="12" fill="#203c53"/><path d="M146 87L106 53" stroke="#f4c46b" stroke-width="8"/></svg><figcaption><b>HD • volume</b><br>Pratos e braço mecânico. Grande capacidade; atenção ao estado do disco.</figcaption></figure><figure><svg viewBox="0 0 200 110" role="img" aria-label="SSD com chips de memória"><rect x="20" y="25" width="160" height="65" rx="7" fill="#1d786f" stroke="#9cebc2"/><g fill="#102b42" stroke="#7cc9b6"><rect x="35" y="38" width="30" height="35"/><rect x="75" y="38" width="30" height="35"/><rect x="115" y="38" width="30" height="35"/></g><path d="M35 91H145" stroke="#f4c46b" stroke-width="6"/></svg><figcaption><b>SSD • agilidade</b><br>Memória flash, sem partes móveis. Confiram formato e interface.</figcaption></figure><figure><svg viewBox="0 0 200 110" role="img" aria-label="Três cópias de dados com uma cópia externa"><g fill="none" stroke="#94e8d0" stroke-width="3"><rect x="8" y="40" width="44" height="45" rx="5"/><rect x="77" y="40" width="44" height="45" rx="5"/><rect x="146" y="15" width="44" height="45" rx="5"/><path d="M52 63H77M121 63L146 38" stroke-dasharray="4 4"/></g><text x="23" y="69" fill="white">1</text><text x="92" y="69" fill="white">2</text><text x="160" y="44" fill="white">3</text></svg><figcaption><b>Backup • recuperação</b><br>Três cópias, dois tipos de mídia e uma fora do local. Testem a restauração.</figcaption></figure></div>
+  <h2>2 · Missão 1: Plano de Armazenamento</h2>
+  <div class="card">
+    <b>Dados levantados pela equipe (por produtor, por ano):</b>
+    <ul>
+      <li>1 ficha de cadastro de <b>60 KB</b></li>
+      <li>3 registros de cultivo de <b>20 KB</b> cada</li>
+      <li>10 fotos da plantação de <b>4 MB</b> cada</li>
+    </ul>
+    <b>Outras informações:</b> o sistema operacional, o AgroVida e os programas ocupam <b>60 GB</b>. Deixem <b>20% de folga</b>. Planejem para <b>3 anos</b>.
+    <div class="dica">Lembrem da escada: <b>subir</b> (KB→MB→GB) = <b>dividir por 1024</b>; <b>descer</b> = <b>multiplicar por 1024</b>. Podem usar vírgula ou ponto nos decimais e arredondar com até 2 casas.</div>
+  </div>
+
+  <div class="card etapa">
+    <h3>Etapa 1 — Quanto o AgroVida gera em 1 ano?</h3>
+    <table class="calc">
+      <tr><th>Item</th><th>Conta</th><th>Resultado</th><th></th></tr>
+      <tr><td>Fotos</td><td>500 × 10 × 4 MB</td><td><input data-k="fotos"> MB</td><td class="fb" id="fb-fotos"></td></tr>
+      <tr><td>Fichas</td><td>500 × 60 KB</td><td><input data-k="fichas"> KB</td><td class="fb" id="fb-fichas"></td></tr>
+      <tr><td>Registros</td><td>500 × 3 × 20 KB</td><td><input data-k="regs"> KB</td><td class="fb" id="fb-regs"></td></tr>
+      <tr><td>Texto em MB</td><td>(fichas + registros) ÷ 1024</td><td><input data-k="texto"> MB</td><td class="fb" id="fb-texto"></td></tr>
+      <tr><td><b>Total de 1 ano</b></td><td>(fotos + texto) ÷ 1024</td><td><input data-k="ano"> GB</td><td class="fb" id="fb-ano"></td></tr>
+    </table>
+  </div>
+
+  <div class="card etapa">
+    <h3>Etapas 2 a 4 — Pensando no futuro</h3>
+    <table class="calc">
+      <tr><th>Etapa</th><th>Conta</th><th>Resultado</th><th></th></tr>
+      <tr><td>2 · Dados de 3 anos</td><td>total de 1 ano × 3</td><td><input data-k="tres"> GB</td><td class="fb" id="fb-tres"></td></tr>
+      <tr><td>3 · Disco principal</td><td>dados de 3 anos + 60 GB</td><td><input data-k="disco"> GB</td><td class="fb" id="fb-disco"></td></tr>
+      <tr><td>4 · Com 20% de folga</td><td>etapa 3 × 1,2</td><td><input data-k="folga"> GB</td><td class="fb" id="fb-folga"></td></tr>
+    </table>
+  </div>
+
+  <div class="card etapa">
+    <h3>Etapa 5 — Quanto o Windows mostra?</h3>
+    <p>O fabricante usa GB decimais. A conversão abaixo usa GiB (base 1024), frequentemente exibidos como “GB” no Windows. Nesta atividade, as conversões anteriores também seguem a base 1024. Conta: <b>capacidade em bytes ÷ 1024 ÷ 1024 ÷ 1024</b>.</p>
+    <table class="calc">
+      <tr><th>Peça</th><th>Conta</th><th>Windows mostra (GiB)</th><th></th></tr>
+      <tr><td>SSD 240 GB</td><td>240.000.000.000 ÷ 1024³</td><td><input data-k="w240"> GB</td><td class="fb" id="fb-w240"></td></tr>
+      <tr><td>SSD 480 GB</td><td>480.000.000.000 ÷ 1024³</td><td><input data-k="w480"> GB</td><td class="fb" id="fb-w480"></td></tr>
+      <tr><td>HD 1 TB</td><td>1.000.000.000.000 ÷ 1024³</td><td><input data-k="w1tb"> GB</td><td class="fb" id="fb-w1tb"></td></tr>
+    </table>
+    <p style="margin-top:12px"><button class="btn" onclick="conferirM1()">Conferir cálculos</button></p>
+    <div id="m1Resumo" class="fb"></div>
+  </div>
+
+  <div class="card etapa">
+    <h3>Etapa 6 — A decisão do técnico</h3>
+    <p>Com os cálculos prontos, escolham a melhor resposta. Cada desafio resolvido vale 10 XP. Pistas e novas tentativas são gratuitas.</p>
+    <div id="decisoes"></div>
+  </div>
+</section>
+
+<!-- MISSAO 2 -->
+<section id="m2"><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>03 / LABORATÓRIO</small><p><b>Onde cada peça se conecta?</b> A proposta chegou ao laboratório. <strong>Identifiquem soquete, slots, portas e energia</strong> antes de planejar a instalação. Explorem e depois atendam ao desafio.</p></div></div>
+  <h2>3 · Missão 2: Mapa da Placa-mãe</h2>
+  <div class="modos">
+    <button class="btn" id="bExplorar" onclick="modoPlaca('explorar')">Modo Explorar</button>
+    <button class="btn sec" id="bDesafio" onclick="modoPlaca('desafio')">Modo Desafio (vale XP)</button>
+  </div>
+  <div class="m2">
+    <div>
+      <svg id="placa" viewBox="0 0 600 600" role="img" aria-label="Placa-mãe micro-ATX simplificada"></svg>
+      <p style="font-size:.85rem;color:var(--cinza)">Placa-mãe micro-ATX simplificada (24,4 × 24,4 cm). O lado esquerdo é a traseira do gabinete, onde fica o espelho.</p>
+    </div>
+    <div class="card" id="info">
+      <h3>Modo Explorar</h3>
+      <p>Passem o mouse e cliquem nas peças da placa para ver <b>o nome, a função e o barramento</b> de cada uma.</p>
+      <p>Quando se sentirem prontos, vão para o <b>Modo Desafio</b>: o sistema pede uma peça e vocês precisam clicar nela, sem ver os nomes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CAMINHO -->
+<section id="caminho"><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>04 / FEIRA AGROVIDA</small><p><b>Da visita de campo à tela da feira.</b> Uma foto da plantação será exibida no monitor. <strong>Expliquem entrada, processamento, armazenamento e saída.</strong> O percurso é um modelo didático; os controladores variam conforme a placa.</p></div></div>
+  <h2>4 · O Caminho do Dado</h2>
+  <div class="card">
+    <p><b>Situação:</b> o técnico conecta o celular da visita de campo no PC, copia a foto da plantação da Dona Maria, salva no AgroVida e abre a foto na tela. Escolham, em cada etapa, <b>por onde o dado passa</b>.</p>
+  </div>
+  <div class="caminho" id="listaCaminho"></div>
+  <p style="margin-top:12px"><button class="btn" onclick="conferirCaminho()">Conferir caminho</button></p>
+  <div id="cmResumo" class="fb"></div>
+  <div class="card" id="cmFluxo" style="display:none">
+    <b>O fluxo completo (lembram da Semana 2?):</b>
+    <div class="fluxo">
+      <span class="f-e">ENTRADA: celular → USB</span> →
+      <span class="f-p">PROCESSAMENTO: chipset → CPU + RAM</span> →
+      <span class="f-a">ARMAZENAMENTO: SSD (SATA ou NVMe)</span> →
+      <span class="f-s">SAÍDA: vídeo → HDMI → monitor</span>
+    </div>
+  </div>
+</section>
+
+<!-- CASOS -->
+<section id="casos"><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>05 / ARQUIVO COMUNITÁRIO</small><p><b>O conhecimento agora resolve chamados.</b> Fotos antigas, computador lento e discos que precisam de proteção. <strong>Leiam as condições de cada atendimento.</strong> Comparem interfaces e expliquem a solução à dupla.</p></div></div>
+  <h2>5 · Estudos de Caso de Técnico</h2>
+  <p>Cada caso é um atendimento real. Leiam com atenção e escolham a melhor solução. Cada desafio resolvido vale 10 XP. Pistas e novas tentativas são gratuitas.</p>
+  <div id="listaCasos"></div>
+</section>
+
+<section id="boss"><div class="bench"><span class="eyebrow" style="color:#416a56">BANCADA VIRTUAL // SIMULE ANTES DE DEFENDER</span><h3>Uma necessidade. Três decisões.</h3><p>Para o cenário desta banca: M.2 apenas SATA, aproximadamente 143 GiB necessários e SSD SATA de 240 GB disponível. A bancada não gera XP: ela ajuda a construir a justificativa.</p><div class="bench-grid"><div><label for="benchDrive">Disco para sistema e banco de dados</label><select id="benchDrive"><option value="">Compare as opções…</option value="sata">SSD SATA de 240 GB</option value="nvme">SSD M.2 NVMe de 240 GB</option value="ram">Memória RAM de 16 GB</option></select><label for="benchProtection">Papel dos dois HDs de 1 TB</label><select id="benchProtection"><option value="">Escolha uma configuração…</option value="raid1">RAID 1: espelhamento, 1 TB útil</option value="raid0">RAID 0: divisão dos dados, 2 TB úteis</option><option value="only">RAID 1: substitui todas as cópias de backup</option></select></div><div><label for="benchBackup">Plano de recuperação</label><select id="benchBackup"><option value="">Pense nos incidentes…</option value="external">Cópia local + cópia externa em outro local e teste de restauração</option><option value="drawer">Somente HD externo sempre ligado ao mesmo PC</option><option value="none">Somente RAID, sem backup</option></select><button class="btn" id="benchTest" onclick="testBench()">Testar o plano →</button><div id="benchFeedback" class="bench-feedback" role="status">Selecione as três decisões e teste a coerência do plano.</div></div></div></div><div class="callout"><div class="avatar" aria-hidden="true">⌘</div><div><small>06 / BANCA DE IMPLANTAÇÃO</small><p><b>Entreguem o plano da equipe.</b> A coordenação vai analisar a infraestrutura. <strong>Reúnam cálculos, compatibilidade e proteção dos arquivos.</strong> Usem a bancada e defendam o parecer final.</p></div></div><h2>6 · Boss fight: banca de implantação</h2><div class="card"><span class="eyebrow" style="color:#076c65">CHAMADO FINAL // DEFENDA SUA SOLUÇÃO</span><h3>A coordenação precisa do seu parecer.</h3><p>O PC tem M.2 apenas SATA, portas SATA e um SSD SATA de 240 GB disponível. A estimativa com folga é de aproximadamente 143 GiB. Há dois HDs de 1 TB e um HD externo. Defendam um plano que mantenha o sistema ágil e permita recuperar dados após um incidente.</p><p>Usem cálculos e compatibilidade como evidências. A defesa pode ser escrita abaixo, oral com registro da síntese ou demonstrada ao professor.</p><label for="evidence1"><b>1. Diagnóstico e decisão técnica</b> — Qual disco usar no sistema? Por que cabe? Que SSD M.2 seria compatível?</label><textarea id="evidence1" placeholder="Compare a capacidade disponível com a estimativa e explique SATA × NVMe."></textarea><label for="evidence2"><b>2. Proteção e prova</b> — O que o RAID 1 resolve? Como organizar as cópias e testar a restauração?</label><textarea id="evidence2" placeholder="Indique os locais das cópias. Explique como recuperar um arquivo de teste."></textarea><label for="evidence3"><b>3. Revisão após feedback</b> — Qual decisão vocês revisaram e por quê?</label><textarea id="evidence3" placeholder="Registrem a orientação recebida e o ajuste feito."></textarea><button class="btn" onclick="checkBoss()">Conferir evidências do parecer</button><p id="bossFeedback" role="status"></p></div><div class="card"><h3>Rubrica da banca · avaliação do professor</h3><p>Em desenvolvimento: resposta incompleta ou sem evidência. Adequado: resposta correta e sustentada. Excelente: resposta correta, evidência e análise dos limites.</p><ul><li>Identificação: reconhece capacidade e compatibilidade.</li><li>Justificativa técnica: relaciona decisão aos cálculos e às interfaces.</li><li>Solução funcional: propõe backup com restauração verificável.</li><li>Revisão: registra o feedback e explica a melhoria.</li></ul><p>Nota de auditoria: uma potência + um ajuste + um próximo passo. Os campos preenchidos são um registro; a correção técnica depende da banca.</p></div></section><!-- RELATORIO -->
+<section id="relatorio">
+  <h2>Relatório da Missão</h2>
+  <div class="card">
+    <p><b>Dupla:</b> <span id="rNomes">—</span> · <b>Estação:</b> <span id="rEst">—</span> · <b>Gerado em:</b> <span id="rHora">—</span></p>
+    <div class="selo" id="rSelo">🌱</div>
+    <div class="nivel" id="rNivel">Estagiário(a)</div>
+    <div class="barra"><div id="rBarra" style="width:0%"></div></div>
+    <p style="text-align:center"><b id="rTotal">0</b> de <b id="rMax">0</b> XP</p>
+    <table class="rel" id="rTabela"></table><div id="badges"></div><div id="reportEvidence"></div><div class="tools"><button class="btn" onclick="exportReport()">Baixar relatório (.txt)</button><button class="btn sec" onclick="atualizarRelatorio();window.print()">Imprimir / salvar PDF</button></div>
+    <div class="dica">Chamem o professor e mostrem esta tela. As partes com menos de 60% devem ser revisadas antes da aula prática.</div>
+    <p><button class="btn" onclick="atualizarRelatorio()">Atualizar relatório</button></p>
+  </div>
+</section>
+
+<div class="tools"><button class="btn sec" onclick="resetGame()">Reiniciar operação</button><span>Sem internet • recursos incorporados • progresso neste navegador</span></div></main>
+<footer>EEMPC Francisco Araújo Barros · Curso Técnico em Informática · Arquitetura e Manutenção de Computadores</footer>
+
+<script>
+/* ================= ESTADO ================= */
+const XP = {rev:0, m1:0, dec:0, m2:0, cam:0, casos:0};
+const MAX = {rev:24, m1:110, dec:50, m2:60, cam:30, casos:60};
+const NOMES = {rev:'Revisão relâmpago', m1:'Missão 1: cálculos', dec:'Missão 1: decisões', m2:'Missão 2: placa-mãe', cam:'Caminho do dado', casos:'Estudos de caso'};
+function somaXP(){return Object.values(XP).reduce((a,b)=>a+b,0)}
+function addXP(k,v){XP[k]=Math.min(MAX[k],XP[k]+v); document.getElementById('xpTopo').textContent=somaXP()}
+
+/* ================= NAVEGACAO ================= */
+function irPara(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('ativo',s.id===id));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('ativo',b.dataset.s===id));
+  if(id==='relatorio') atualizarRelatorio();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>irPara(b.dataset.s)));
+
+/* ================= REVISAO ================= */
+const REV = [
+ ['Qual é volátil: RAM ou SSD?','RAM. Desligou, apagou. O SSD guarda os dados sem energia.'],
+ ['Por que o HD é lento?','Porque precisa mover peças: o prato gira e o braço leva a cabeça até o dado.'],
+ ['M.2 é formato ou caminho?','Formato (o "carro"). SATA ou NVMe é o caminho (a "estrada").'],
+ ['RAID 1 com 2 discos de 1 TB dá quanto de espaço útil?','1 TB, porque um disco é espelho do outro.'],
+ ['RAID substitui backup?','Não! RAID não protege contra arquivo apagado, vírus ou raio. Regra 3-2-1.'],
+ ['De MB para GB: multiplica ou divide por 1024?','Divide (subir na escada = dividir).'],
+ ['Onde encaixa a placa de vídeo moderna?','No slot PCI-Express x16, o mais comprido.'],
+ ['O que liga um HD/SSD de 2,5" na placa?','Cabo de dados SATA (na placa) + cabo de energia SATA (da fonte).'],
+ ['Barramento antigo de cabo largo, com master/slave?','IDE (PATA): 40 pinos, cabo cinza achatado, até 133 MB/s.'],
+ ['Serial ou paralelo: qual venceu e por quê?','Serial: poucos fios, menos interferência, muito mais velocidade.'],
+ ['A rede que já vem na placa-mãe é onboard ou offboard?','Onboard (integrada na placa).'],
+ ['Qual conector leva o botão liga/desliga até a placa?','F_PANEL (os pinos PWR SW).']
+];
+const revMarc = {};
+(function montarCards(){
+  const c=document.getElementById('cards');
+  REV.forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='flash'; d.id='fc'+i;
+    d.innerHTML=`<div class="in">
+      <div class="face frente"><span class="num">PERGUNTA ${i+1}</span><div class="q">${r[0]}</div><span class="num">clique para virar ↻</span></div>
+      <div class="face verso"><span class="num">RESPOSTA</span><div>${r[1]}</div>
+        <div class="acoes" id="ac${i}"><button class="b-ok">Acertei</button><button class="b-no">Errei</button></div></div></div>`;
+    d.querySelector('.frente').addEventListener('click',()=>d.classList.add('virado'));
+    const [bo,bn]=d.querySelectorAll('.acoes button');
+    bo.addEventListener('click',()=>marcarRev(i,true));
+    bn.addEventListener('click',()=>marcarRev(i,false));
+    c.appendChild(d);
+  });
+})();
+function marcarRev(i,ok){
+  if(revMarc[i]===true) return;
+  revMarc[i]=ok; if(ok) addXP('rev',2);
+  document.getElementById('ac'+i).innerHTML=`<div class="marcado ${ok?'ok':'erro'}">${ok?'✔ Acertei (+2 XP)':'↻ Releia a resposta e use Retomar a carta.'}</div>`;
+  if(!ok){const ret=document.createElement('button');ret.className='btn sec';ret.textContent='Retomar a carta';ret.onclick=()=>marcarRev(i,true);document.getElementById('ac'+i).appendChild(ret);}
+  const feitos=Object.keys(revMarc).length, certos=Object.values(revMarc).filter(Boolean).length;
+  document.getElementById('revResumo').innerHTML=`Respondidas: ${feitos}/12 · Acertos: <span class="ok">${certos}</span>`+
+    (feitos===12?(certos>=9?' · Revisão em dia! Vamos para a Missão 1.':' · Releiam as cartas que erraram antes de seguir.'):'');
+}
+
+/* ================= MISSAO 1 ================= */
+const ESP = {
+  fotos:{v:20000, dica:'500 × 10 = 5.000 fotos; 5.000 × 4 MB.'},
+  fichas:{v:30000, dica:'500 × 60.'},
+  regs:{v:30000, dica:'500 × 3 = 1.500 registros; 1.500 × 20 KB.'},
+  texto:{v:58.59, dica:'Some fichas + registros (em KB) e divida por 1024.'},
+  ano:{v:19.59, dica:'Some fotos (MB) + texto (MB) e divida por 1024.'},
+  tres:{v:58.77, dica:'Multiplique o total de 1 ano por 3.'},
+  disco:{v:118.77, dica:'Some os dados de 3 anos com os 60 GB do sistema.'},
+  folga:{v:142.52, dica:'Multiplique a etapa 3 por 1,2 (isso soma 20%).'},
+  w240:{v:223.52, dica:'240.000.000.000 ÷ 1024 ÷ 1024 ÷ 1024.'},
+  w480:{v:447.03, dica:'480.000.000.000 ÷ 1024 ÷ 1024 ÷ 1024.'},
+  w1tb:{v:931.32, dica:'1.000.000.000.000 ÷ 1024 ÷ 1024 ÷ 1024.'}
+};
+const m1Status = {}; // k -> 'ok' | tentativas
+function lerNumero(s){
+  s=(s||'').trim().replace(/\s/g,'');
+  if(!s) return NaN;
+  if(s.includes(',')) s=s.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
+  return parseFloat(s);
+}
+function conferirM1(){
+  let certos=0, vazios=0;
+  document.querySelectorAll('#m1 input[data-k]').forEach(inp=>{
+    const k=inp.dataset.k, e=ESP[k], fb=document.getElementById('fb-'+k), n=lerNumero(inp.value);
+    if(m1Status[k]==='ok'){certos++;return}
+    if(isNaN(n)){vazios++; inp.classList.remove('certo','errado'); fb.textContent=''; return}
+    const tol=Math.max(Math.abs(e.v)*0.02,0.05);
+    if(Math.abs(n-e.v)<=tol){
+      const tent=m1Status[k]||0; m1Status[k]='ok'; certos++;
+      const pts=10; addXP('m1',pts);
+      inp.classList.remove('errado'); inp.classList.add('certo'); inp.readOnly=true;
+      fb.innerHTML=`<span class="ok">✔ +${pts} XP</span>`;
+    } else {
+      m1Status[k]=(m1Status[k]||0)+1;
+      inp.classList.remove('certo'); inp.classList.add('errado');
+      fb.innerHTML=`<span class="erro">✘</span> Dica: ${e.dica}`;
+    }
+  });
+  const tot=Object.keys(ESP).length;
+  let msg=`Cálculos certos: <b>${certos}/${tot}</b>.`;
+  if(vazios) msg+=` Faltam ${vazios} em branco.`;
+  if(certos===tot) msg+=' <span class="ok">Excelente! Repararam que as fotos são quase 100% do espaço? Agora a Etapa 6.</span>';
+  document.getElementById('m1Resumo').innerHTML=msg;
+}
+
+/* ================= MCQ GENERICO ================= */
+function montarMCQ(alvoId, lista, chaveXP){
+  const alvo=document.getElementById(alvoId);
+  lista.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='card mcq';
+    let html=(q.titulo?`<h3 style="margin-top:0">${q.titulo}</h3>`:'')+`<p>${q.p}</p>`;
+    q.o.forEach((op,j)=>html+=`<button class="opc" data-j="${j}">${String.fromCharCode(65+j)}) ${op}</button>`);
+    html+=`<div class="expl"></div>`;
+    div.innerHTML=html;
+    let tent=0, feito=false;
+    div.querySelectorAll('.opc').forEach(b=>b.addEventListener('click',()=>{
+      if(feito) return;
+      const j=+b.dataset.j;
+      if(j===q.c){
+        feito=true; b.classList.add('certa');
+        const pts=10; addXP(chaveXP,pts);
+        const ex=div.querySelector('.expl'); ex.style.display='block';
+        ex.innerHTML=`<span class="ok">✔ Certo! +${pts} XP.</span> ${q.e}`;
+      } else {
+        tent++; b.classList.add('errada'); b.disabled=true;
+        const ex=div.querySelector('.expl'); ex.style.display='block';
+        ex.innerHTML=`<span class="erro">✘ Ainda não.</span> ${q.d||'Pensem de novo e tentem outra opção.'}`;
+      }
+    }));
+    alvo.appendChild(div);
+  });
+}
+montarMCQ('decisoes',[
+ {p:'1. Qual peça deve guardar o <b>sistema operacional e o banco de dados</b> do AgroVida?',
+  o:['HD de 2 TB, porque cabe mais','SSD de 240 GB (ou 480 GB), porque o sistema abre e salva fichas muito mais rápido','Pen drive de 32 GB','A memória RAM'],
+  c:1, d:'Lembrem: o sistema precisa de velocidade, e o cálculo deu cerca de 143 GB.', e:'O SSD de 240 GB mostra ~223 GB no Windows: cabe os ~143 GB com folga e deixa tudo rápido.'},
+ {p:'2. Onde guardar as <b>fotos antigas e o backup local</b>?',
+  o:['Na RAM','Num HD de 1 TB: espaço grande e barato para arquivos pesados','Na VRAM da placa de vídeo','No chip da BIOS'],
+  c:1, d:'Qual peça tem o menor preço por GB?', e:'HD é ótimo para guardar muito volume com pouco dinheiro.'},
+ {p:'3. Sobre <b>RAID</b> no computador do AgroVida, qual a melhor opção?',
+  o:['RAID 0, para ficar mais rápido','RAID 1 com 2 HDs iguais, para não perder dados se um disco queimar','RAID 1 e então não precisa mais de backup','RAID não existe em PCs'],
+  c:1, d:'Se um disco queimar no RAID 0, o que acontece?', e:'RAID 1 espelha os discos. Mas atenção: RAID não substitui o backup!'},
+ {p:'4. Como aplicar a <b>regra 3-2-1</b> no AgroVida?',
+  o:['3 pen drives na mesma gaveta','Dados no SSD + cópia no HD interno + cópia num HD externo guardado em outro local físico ou na nuvem','3 computadores ligados no mesmo estabilizador','Salvar o mesmo arquivo 3 vezes na mesma pasta'],
+  c:1, d:'3 cópias, 2 tipos de mídia, 1 cópia fora do local físico.', e:'Assim, nem um raio na sala de informática apaga os dados dos produtores.'},
+ {p:'5. O manual diz que o <b>slot M.2 da placa é só SATA</b>. Qual SSD comprar para ele?',
+  o:['M.2 NVMe, porque é o mais rápido','M.2 SATA (ou um SSD 2,5" na porta SATA)','SSD com cabo IDE','Qualquer M.2 funciona igual'],
+  c:1, d:'M.2 é formato. Qual caminho esse slot oferece?', e:'Um NVMe não funcionaria num slot M.2 só SATA. Confiram sempre o manual!'}
+],'dec');
+
+/* ================= MISSAO 2: PLACA ================= */
+const PECAS = {
+ io:{n:'Espelho traseiro (painel de I/O)', f:'Conectores que aparecem atrás do gabinete: USB, vídeo (HDMI/VGA), rede RJ-45, áudio.', b:'USB, HDMI/VGA/DVI, RJ-45, áudio P2', l:'Teclado, mouse, monitor e cabo de rede do AgroVida.'},
+ atx12v:{n:'Conector ATX12V / EPS (4 ou 8 pinos)', f:'Energia exclusiva do processador, vinda da fonte.', b:'Energia (não é barramento de dados)', l:'Cabo de 4 ou 8 pinos da fonte.'},
+ vrm:{n:'VRM (reguladores de tensão)', f:'Bobinas e dissipadores que ajustam a energia que chega ao processador.', b:'Energia', l:'—'},
+ cpu:{n:'Soquete do processador', f:'Encaixe onde o processador é preso e ligado à placa.', b:'Soquete do fabricante (ex.: LGA 1700, AM4)', l:'O processador, com o cooler por cima.'},
+ cpufan:{n:'CPU_FAN', f:'Pinos que alimentam e controlam o cooler do processador.', b:'3 ou 4 pinos de ventoinha', l:'Cooler do processador.'},
+ dimm:{n:'Slots de memória (DIMM)', f:'Recebem os pentes de RAM. Têm travas nas pontas.', b:'DDR4 ou DDR5 (não se misturam)', l:'Pentes de memória RAM.'},
+ atx24:{n:'Conector ATX de 24 pinos', f:'O maior conector da placa: energia principal, vinda da fonte.', b:'Energia ATX', l:'Cabo de 24 pinos da fonte.'},
+ pcie1:{n:'Slot PCI-Express x1', f:'Slot curtinho para placas de expansão simples.', b:'PCI-Express x1 (1 pista)', l:'Placa de rede, Wi-Fi, som ou USB extra.'},
+ pcie16:{n:'Slot PCI-Express x16', f:'O slot de expansão mais comprido, com trava.', b:'PCI-Express x16 (16 pistas)', l:'Placa de vídeo offboard, se houver.'},
+ m2:{n:'Slot M.2', f:'Encaixe deitado na placa, com parafuso, para SSD sem cabo.', b:'M.2 SATA e/ou NVMe (PCIe x4): confira o manual!', l:'O SSD do sistema do AgroVida.'},
+ chipset:{n:'Chipset', f:'O "gerente de trânsito": controla SATA, USB, áudio, rede e slots extras.', b:'Liga-se ao processador por um barramento próprio', l:'—'},
+ bat:{n:'Bateria CR2032', f:'Mantém data, hora e configurações da BIOS com o PC desligado.', b:'—', l:'Se o PC perde a hora, troque ela primeiro.'},
+ bios:{n:'Chip da BIOS/UEFI', f:'Guarda o firmware que liga a máquina, faz o POST e chama o sistema.', b:'Memória flash', l:'—'},
+ sata:{n:'Portas SATA', f:'Portas pequenas em "L" para o cabo de dados dos HDs/SSDs.', b:'SATA III (6 Gb/s ≈ 600 MB/s)', l:'HD de 1 TB do backup (e SSD 2,5", se for o caso).'},
+ audio:{n:'HD_AUDIO (áudio frontal)', f:'Pinos para as entradas de fone e microfone da frente do gabinete.', b:'Áudio', l:'Cabo de áudio do painel frontal.'},
+ fusb:{n:'F_USB (USB frontal)', f:'Pinos para as portas USB da frente do gabinete.', b:'USB 2.0 (9 pinos) ou USB 3.x (19 pinos)', l:'Cabo USB do painel frontal.'},
+ fpanel:{n:'F_PANEL (painel frontal)', f:'Pinos do botão liga (PWR SW), reset (RST SW) e LEDs.', b:'Sinais do painel', l:'Fios do botão liga/desliga e LEDs do gabinete.'}
+};
+const DESAFIO = ['cpu','dimm','chipset','pcie16','pcie1','m2','sata','atx24','atx12v','fpanel','bat','io'];
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function grupo(id){const g=el('g',{class:'hot','data-id':id},svg);g.addEventListener('click',()=>clicouPeca(id,g));const t=el('title',{},g);t.textContent='';return g}
+const svg=document.getElementById('placa');
+(function desenharPlaca(){
+  el('rect',{x:5,y:5,width:590,height:590,rx:10,fill:'#1f5e3a',stroke:'#0d3320','stroke-width':4},svg);
+  // trilhas decorativas
+  for(let i=0;i<14;i++){el('path',{d:`M${100+i*30} 230 L${100+i*30} ${280+(i%3)*8} L${120+i*30} ${290+(i%3)*8}`,stroke:'#2e7d4f','stroke-width':2,fill:'none'},svg)}
+  [[110,15],[580,15],[110,585],[580,585],[300,300],[580,300]].forEach(p=>el('circle',{cx:p[0],cy:p[1],r:6,fill:'#c0a060',stroke:'#7a6030'},svg));
+  let g;
+  // espelho
+  g=grupo('io'); el('rect',{x:12,y:20,width:70,height:265,rx:4,fill:'#9ea7ad',stroke:'#546e7a','stroke-width':2},g);
+  [[22,35,'#1565c0'],[22,60,'#1565c0'],[22,95,'#222'],[22,120,'#222'],[22,160,'#455a64'],[22,195,'#cfd8dc'],[22,235,'#4caf50'],[52,235,'#e91e63'],[52,255,'#2196f3']].forEach(c=>el('rect',{x:c[0],y:c[1],width:c[0]===22&&c[1]<240?50:22,height:c[1]>=230?14:18,rx:2,fill:c[2]},g));
+  // atx12v
+  g=grupo('atx12v'); el('rect',{x:120,y:18,width:56,height:28,rx:3,fill:'#f5f5f5',stroke:'#333'},g);
+  for(let i=0;i<4;i++)for(let j=0;j<2;j++)el('rect',{x:125+i*12,y:22+j*11,width:9,height:8,fill:'#444'},g);
+  // vrm
+  g=grupo('vrm'); el('rect',{x:120,y:75,width:55,height:150,rx:3,fill:'#37474f'},g);
+  for(let i=0;i<5;i++)el('rect',{x:132,y:85+i*27,width:30,height:20,rx:3,fill:'#263238',stroke:'#90a4ae'},g);
+  // cpu
+  g=grupo('cpu'); el('rect',{x:200,y:85,width:120,height:120,rx:4,fill:'#cfd8dc',stroke:'#78909c','stroke-width':3},g);
+  el('rect',{x:220,y:105,width:80,height:80,fill:'#eceff1',stroke:'#b0bec5'},g);
+  for(let i=0;i<7;i++)for(let j=0;j<7;j++)el('circle',{cx:228+i*11,cy:113+j*11,r:1.6,fill:'#c9a227'},g);
+  // cpu fan
+  g=grupo('cpufan'); el('rect',{x:335,y:20,width:36,height:16,rx:2,fill:'#fafafa',stroke:'#333'},g);
+  for(let i=0;i<4;i++)el('rect',{x:339+i*8,y:24,width:5,height:8,fill:'#444'},g);
+  // dimm
+  g=grupo('dimm'); for(let i=0;i<4;i++){const x=375+i*20; el('rect',{x:x,y:55,width:12,height:240,rx:2,fill:i%2?'#212121':'#424242'},g); el('rect',{x:x-1,y:50,width:14,height:10,fill:'#bdbdbd'},g); el('rect',{x:x-1,y:290,width:14,height:10,fill:'#bdbdbd'},g)}
+  // atx24
+  g=grupo('atx24'); el('rect',{x:530,y:150,width:38,height:150,rx:3,fill:'#fafafa',stroke:'#333','stroke-width':2},g);
+  for(let i=0;i<12;i++)for(let j=0;j<2;j++)el('rect',{x:535+j*16,y:155+i*12,width:12,height:9,fill:'#555'},g);
+  // pcie x1 (superior)
+  g=grupo('pcie1'); el('rect',{x:100,y:310,width:80,height:14,rx:2,fill:'#212121'},g);
+  el('rect',{x:100,y:420,width:80,height:14,rx:2,fill:'#212121'},g);
+  // pcie x16
+  g=grupo('pcie16'); el('rect',{x:100,y:345,width:330,height:18,rx:2,fill:'#263238',stroke:'#90a4ae'},g);
+  el('rect',{x:420,y:340,width:14,height:28,rx:2,fill:'#9e9e9e'},g);
+  // m2
+  g=grupo('m2'); el('rect',{x:200,y:385,width:190,height:24,rx:3,fill:'#e0e0e0',stroke:'#757575'},g);
+  el('rect',{x:200,y:385,width:22,height:24,fill:'#424242'},g); el('circle',{cx:380,cy:397,r:5,fill:'#bdbdbd',stroke:'#616161'},g);
+  // chipset
+  g=grupo('chipset'); el('rect',{x:430,y:410,width:85,height:85,rx:6,fill:'#78909c',stroke:'#455a64','stroke-width':2},g);
+  for(let i=0;i<6;i++)el('rect',{x:438+i*13,y:418,width:7,height:69,fill:'#90a4ae'},g);
+  // sata
+  g=grupo('sata'); for(let i=0;i<4;i++)el('rect',{x:540,y:420+i*26,width:34,height:18,rx:2,fill:'#e65100',stroke:'#bf360c'},g);
+  // bateria
+  g=grupo('bat'); el('circle',{cx:300,cy:465,r:26,fill:'#cfd8dc',stroke:'#78909c','stroke-width':3},g); el('text',{x:300,y:470,'text-anchor':'middle','font-size':11,fill:'#546e7a'},g).textContent='+';
+  // bios chip
+  g=grupo('bios'); el('rect',{x:215,y:470,width:34,height:28,rx:2,fill:'#212121'},g); el('circle',{cx:221,cy:476,r:2,fill:'#9e9e9e'},g);
+  // audio
+  g=grupo('audio'); el('rect',{x:30,y:555,width:50,height:22,rx:2,fill:'#fafafa',stroke:'#333'},g);
+  for(let i=0;i<5;i++)for(let j=0;j<2;j++)el('rect',{x:34+i*9,y:559+j*9,width:6,height:6,fill:'#444'},g);
+  // f_usb
+  g=grupo('fusb'); el('rect',{x:320,y:555,width:55,height:22,rx:2,fill:'#fafafa',stroke:'#333'},g);
+  for(let i=0;i<5;i++)for(let j=0;j<2;j++)el('rect',{x:324+i*10,y:559+j*9,width:6,height:6,fill:'#444'},g);
+  // f_panel
+  g=grupo('fpanel'); el('rect',{x:470,y:555,width:75,height:22,rx:2,fill:'#fafafa',stroke:'#333'},g);
+  const cores=['#e53935','#fdd835','#43a047','#1e88e5','#8e24aa'];
+  for(let i=0;i<5;i++)for(let j=0;j<2;j++)el('rect',{x:475+i*14,y:559+j*9,width:7,height:6,fill:cores[i]},g);
+})();
+
+let modo='explorar', alvoAtual=null, ordemDesafio=[], achados=new Set(), errosAlvo=0, errosTotal=0;
+function modoPlaca(m){
+  modo=m;
+  document.getElementById('bExplorar').className = m==='explorar'?'btn':'btn sec';
+  document.getElementById('bDesafio').className  = m==='desafio'?'btn':'btn sec';
+  svg.querySelectorAll('.hot').forEach(g=>{
+    g.querySelector('title').textContent = m==='explorar'?PECAS[g.dataset.id].n:'';
+    g.classList.remove('achado');
+  });
+  if(m==='explorar'){
+    document.getElementById('info').innerHTML='<h3>Modo Explorar</h3><p>Cliquem nas peças da placa para ver <b>o nome, a função e o barramento</b>.</p>';
+  } else iniciarDesafio();
+}
+function iniciarDesafio(){
+  ordemDesafio=[...DESAFIO]; errosAlvo=0;
+  achados.forEach(id=>svg.querySelectorAll(`[data-id="${id}"]`).forEach(g=>g.classList.add('achado')));
+  proximoAlvo();
+}
+function proximoAlvo(){
+  alvoAtual=ordemDesafio.find(id=>!achados.has(id))||null; errosAlvo=0;
+  const box=document.getElementById('info');
+  if(!alvoAtual){
+    box.innerHTML=`<h3>Desafio concluído!</h3><p class="ok">Vocês encontraram as 12 peças.</p><p>Erros no caminho: ${errosTotal}.</p><p>Agora sigam para o <b>Caminho do Dado</b>.</p><button class="btn" onclick="irPara('caminho')">Ir para o Caminho do Dado →</button>`;
+    return;
+  }
+  box.innerHTML=`<h3>Modo Desafio</h3><p>Cliquem na peça:</p><div class="alvo">${PECAS[alvoAtual].n}</div>
+    <p class="fb" id="dfb"></p><p>Encontradas: <b>${achados.size}/12</b> · XP do desafio: <b>${XP.m2}</b></p>
+    <div class="lista-achados">${[...achados].map(id=>'✔ '+PECAS[id].n).join('<br>')}</div>`;
+}
+function clicouPeca(id,g){
+  if(modo==='explorar'){
+    const p=PECAS[id];
+    document.getElementById('info').innerHTML=`<h3>${p.n}</h3><p><b>Função:</b> ${p.f}</p><p><b>Barramento/padrão:</b> ${p.b}</p><p><b>No PC do AgroVida:</b> ${p.l}</p>`;
+    return;
+  }
+  if(!alvoAtual) return;
+  if(id===alvoAtual){
+    achados.add(id); const pts=5; addXP('m2',pts);
+    svg.querySelectorAll(`[data-id="${id}"]`).forEach(x=>x.classList.add('achado'));
+    proximoAlvo();
+    const f=document.getElementById('dfb'); if(f) f.innerHTML=`<span class="ok">✔ Achou ${PECAS[id].n}! +${pts} XP</span>`;
+  } else {
+    errosAlvo++; errosTotal++;
+    g.classList.remove('piscaerro'); void g.getBBox(); g.classList.add('piscaerro');
+    setTimeout(()=>g.classList.remove('piscaerro'),1100);
+    const f=document.getElementById('dfb');
+    f.innerHTML = `<span class="erro">✘ Isso é: ${PECAS[id].n}.</span>` + (errosAlvo>=2?` Dica: ${PECAS[alvoAtual].f}`:'');
+  }
+}
+modoPlaca('explorar');
+
+/* ================= CAMINHO DO DADO ================= */
+const OPC_CAM=['Porta USB','Chipset','Memória RAM','SSD, pelo SATA ou M.2 NVMe (PCI-Express)','Vídeo onboard (integrado ao processador)','Saída HDMI/VGA','Slot AGP','Porta PS/2','Cabo IDE','Chip da BIOS'];
+const CAM=[
+ ['O celular se conecta ao PC pela…',0],
+ ['Da porta, o dado segue para o "gerente de trânsito" da placa, o…',1],
+ ['A foto fica temporariamente (volátil) na…',2],
+ ['Ao salvar no AgroVida, a foto vai para o…',3],
+ ['Para mostrar na tela, a imagem é processada pelo…',4],
+ ['Do vídeo até o monitor, o sinal sai pela…',5]
+];
+const camOk={};
+(function montarCaminho(){
+  const l=document.getElementById('listaCaminho');
+  const emb=[...OPC_CAM.keys()].sort(()=>Math.random()-.5);
+  CAM.forEach((c,i)=>{
+    const d=document.createElement('div'); d.className='linha';
+    d.innerHTML=`<span class="n">${i+1}</span><span>${c[0]}</span><select id="cs${i}"><option value="">escolha…</option>${emb.map(k=>`<option value="${k}">${OPC_CAM[k]}</option>`).join('')}</select><span class="fb" id="cf${i}"></span>`;
+    l.appendChild(d);
+  });
+})();
+function conferirCaminho(){
+  let certos=0;
+  CAM.forEach((c,i)=>{
+    const s=document.getElementById('cs'+i), f=document.getElementById('cf'+i);
+    if(camOk[i]){certos++;return}
+    if(s.value===''){f.textContent='';return}
+    if(+s.value===c[1]){camOk[i]=true;certos++;addXP('cam',5);s.className='certo';s.disabled=true;f.innerHTML='<span class="ok">✔ +5 XP</span>'}
+    else{s.className='errado';f.innerHTML='<span class="erro">✘ tente de novo</span>'}
+  });
+  document.getElementById('cmResumo').innerHTML=`Etapas certas: <b>${certos}/6</b>`;
+  if(certos===6) document.getElementById('cmFluxo').style.display='block';
+}
+
+/* ================= ESTUDOS DE CASO ================= */
+montarMCQ('listaCasos',[
+ {titulo:'Caso 1: O PC lento da secretaria', p:'O PC do AgroVida demora 4 minutos para ligar. Tem um HD de 500 GB (7.200 RPM) com 95% ocupado. O manual diz que o slot M.2 da placa é <b>só SATA</b>. Um colega quer comprar um SSD M.2 NVMe. O que fazer?',
+  o:['Comprar o NVMe mesmo, porque é o mais rápido','Comprar um SSD M.2 SATA (ou 2,5" SATA) para o sistema e manter o HD para arquivos e backup','Comprar mais um HD de 500 GB','Trocar só o monitor'],
+  c:1, d:'O slot é só SATA. Será que um NVMe funcionaria ali?', e:'Um NVMe não funcionaria naquele slot. O SSD SATA resolve a lentidão e o HD pode guardar uma cópia local, após verificar sua integridade. Mantenham também uma cópia fora do local.'},
+ {titulo:'Caso 2: O SSD sem lugar para encaixar', p:'A associação doou um PC antigo, <b>sem slot M.2</b>, mas com um slot PCIe x16 livre e portas SATA II. A escola ganhou um SSD M.2 NVMe. Como aproveitar?',
+  o:['Ligar o SSD no slot de memória','Usar um adaptador PCIe → M.2 NVMe no slot PCIe (conferindo se a BIOS dá boot por NVMe)','Ligar o SSD na porta SATA II direto','Não tem como usar'],
+  c:1, d:'O NVMe viaja por qual "rodovia"?', e:'O NVMe usa pistas PCI-Express, então um adaptador no slot PCIe funciona. Em placas muito antigas, confiram o boot na BIOS.'},
+ {titulo:'Caso 3: O servidor que não pode perder dados', p:'A coordenação quer que, se um disco queimar, o AgroVida continue funcionando sem perder nenhuma ficha. Há 2 HDs de 2 TB disponíveis.',
+  o:['RAID 0 com os dois HDs','RAID 1 com os dois HDs e também backup externo','Só RAID 1, porque backup não é mais necessário','Deixar os HDs na caixa'],
+  c:1, d:'Qual RAID é o "espelho"? E RAID substitui backup?', e:'RAID 1 (2 TB úteis) protege contra a queima de um disco, e o backup externo protege contra o resto (regra 3-2-1).'},
+ {titulo:'Caso 4: A placa de vídeo sem imagem', p:'Instalaram uma placa de vídeo para editar os vídeos dos produtores. O PC liga, mas a tela fica preta. O monitor continua no HDMI do espelho, e o conector de 6 pinos da placa ficou vazio.',
+  o:['O processador queimou','Ligar o cabo PCIe de 6 pinos da fonte na placa e passar o monitor para a saída da placa offboard','Formatar o SSD','Trocar a bateria CR2032'],
+  c:1, d:'Dois problemas: energia e cabo do monitor.', e:'Placa offboard precisa de energia extra e o monitor deve ficar ligado nela, não no espelho.'},
+ {titulo:'Caso 5: As fotos históricas da comunidade', p:'Um produtor trouxe um HD de 2005 com fotos da comunidade. Ele tem um <b>conector largo de 40 pinos</b>. Os PCs do laboratório só têm SATA.',
+  o:['Ligar direto na porta SATA, porque encaixa','Usar um adaptador IDE → USB (ou IDE → SATA) para copiar as fotos','Ligar no slot PCIe x16','Desistir das fotos'],
+  c:1, d:'Conector de 40 pinos com cabo largo é de qual barramento?', e:'É IDE (PATA), incompatível com SATA sem adaptador. Depois de copiar, as fotos vão para o backup do AgroVida.'},
+ {titulo:'Caso 6: O projetor da feira', p:'Na feira do AgroVida, o projetor só tem entrada <b>VGA</b>, mas o notebook do projeto só tem <b>HDMI e USB-C</b>.',
+  o:['Um cabo HDMI comum','Um adaptador ativo HDMI → VGA (ou USB-C → VGA)','Um cabo SATA','Um cabo de rede'],
+  c:1, d:'HDMI é digital e VGA é analógico. Precisa converter?', e:'O adaptador ativo converte o sinal digital em analógico. Um cabo simples não faz isso.'}
+],'casos');
+
+/* ================= RELATORIO ================= */
+function atualizarRelatorio(){
+  const a1=document.getElementById('aluno1').value.trim(), a2=document.getElementById('aluno2').value.trim();
+  document.getElementById('rNomes').textContent=[a1,a2].filter(Boolean).join(' e ')||'(sem nome — preencham lá em cima)';
+  document.getElementById('rEst').textContent=document.getElementById('estacao').value.trim()||'—';
+  document.getElementById('rHora').textContent=new Date().toLocaleString('pt-BR');
+  const tot=somaXP(), max=Object.values(MAX).reduce((a,b)=>a+b,0), pct=Math.round(tot/max*100);
+  document.getElementById('rTotal').textContent=tot; document.getElementById('rMax').textContent=max;
+  document.getElementById('rBarra').style.width=pct+'%';
+  let nivel='Estagiário(a)', selo='🌱';
+  if(pct>=85){nivel='Técnico(a) Sênior do AgroVida';selo='🏆'} else if(pct>=65){nivel='Técnico(a) Pleno';selo='🛠️'} else if(pct>=40){nivel='Técnico(a) Júnior';selo='🔧'}
+  document.getElementById('rNivel').textContent=`${nivel} · ${pct}%`; document.getElementById('rSelo').textContent=selo;
+  let h='<tr><th>Parte</th><th>XP</th><th>%</th><th>Situação</th></tr>';
+  for(const k in XP){const p=Math.round(XP[k]/MAX[k]*100); h+=`<tr><td>${NOMES[k]}</td><td>${XP[k]} / ${MAX[k]}</td><td>${p}%</td><td class="${p>=60?'ok':'erro'}">${p>=60?'Pronto':'Revisar'}</td></tr>`}
+  document.getElementById('rTabela').innerHTML=h;
+}
+</script>
+
+<script>
+// Histórico local de ações: restaura também as travas e tentativas das atividades.
+const SAVE_KEY='agrovida-territorio-v2';let replaying=false,historyActions=[];
+function selectorFor(el){if(el.id)return '#'+CSS.escape(el.id);const parts=[];while(el&&el!==document.body){if(el.id){parts.unshift('#'+CSS.escape(el.id));break;}parts.unshift(el.tagName.toLowerCase()+':nth-child('+([...el.parentElement.children].indexOf(el)+1)+')');el=el.parentElement;}return parts.join(' > ');}
+function saveProgress(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(historyActions));document.getElementById('saveState').textContent='✓ Progresso salvo neste navegador';}catch(e){document.getElementById('saveState').textContent='Salvamento indisponível • exporte o relatório';}}
+function updateHud(){const total=somaXP(),max=Object.values(MAX).reduce((a,b)=>a+b,0);document.getElementById('globalProgress').max=max;document.getElementById('globalProgress').value=total;document.getElementById('progressText').textContent=total+' / '+max+' XP';document.getElementById('level').textContent=total>=max?'Consultoria pronta':total>=220?'Especialista de campo':total>=100?'Técnico em evolução':'Equipe em formação';document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',b.classList.contains('ativo')?'step':'false'));}
+const originalAddXP=addXP;addXP=function(k,v){originalAddXP(k,v);updateHud();};
+function checkBoss(){const fields=[1,2,3].map(n=>document.getElementById('evidence'+n).value.trim());document.getElementById('bossFeedback').textContent=fields.every(v=>v.length>=30)?'✓ Parecer registrado para a banca. Potência: vocês documentaram as três evidências. Ajuste: confiram se a cópia externa fica fora do local. Próximo passo: demonstrem uma restauração ao professor.':'↻ Completem as três evidências com explicações (ao menos 30 caracteres por campo). Usem os cálculos, as cartas e o modo Explorar como apoio. Isso verifica o registro, não a correção técnica.';}
+const baseReport=atualizarRelatorio;atualizarRelatorio=function(){baseReport();const badges=[];if(XP.m1===MAX.m1)badges.push('Dimensionamento concluído');if(XP.m2===MAX.m2)badges.push('Mapa dominado');if(XP.casos===MAX.casos)badges.push('Diagnóstico de campo');document.getElementById('badges').replaceChildren(...badges.map(text=>{const span=document.createElement('span');span.className='badge';span.textContent='✓ '+text;return span;}));const container=document.getElementById('reportEvidence');container.replaceChildren();const title=document.createElement('h3');title.textContent='Evidências da banca';container.appendChild(title);[1,2,3].forEach(n=>{const item=document.createElement('p');item.textContent=n+'. '+(document.getElementById('evidence'+n).value.trim()||'A registrar / demonstrar ao professor.');container.appendChild(item);});};
+function exportReport(){atualizarRelatorio();const text='AGROVIDA • RELATÓRIO DA OPERAÇÃO\n'+document.querySelector('#relatorio .card').innerText+'\n\nAvaliação técnica: a preencher pelo professor.\n';const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='AgroVida_Relatorio.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function resetGame(){if(confirm('Apagar o progresso salvo desta operação e começar novamente? Exporte o relatório antes se quiser guardar as evidências.')){try{localStorage.removeItem(SAVE_KEY);}catch(e){}location.reload();}}
+document.querySelectorAll('.flash .frente').forEach(front=>{front.tabIndex=0;front.setAttribute('role','button');front.setAttribute('aria-label',front.innerText+' — revelar resposta');front.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();front.click();front.parentElement.querySelector('.b-ok').focus();}});});
+svg.setAttribute('role','group');svg.querySelectorAll('.hot').forEach(g=>{g.tabIndex=0;g.setAttribute('role','button');g.setAttribute('aria-label','Componente na posição '+(Array.from(svg.querySelectorAll('.hot')).indexOf(g)+1));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();g.dispatchEvent(new MouseEvent('click',{bubbles:true}));}});});
+document.querySelectorAll('input[data-k]').forEach(el=>{el.setAttribute('aria-label','Resultado: '+el.closest('tr').children[0].innerText);el.inputMode='decimal';});document.querySelectorAll('.fb').forEach(el=>el.setAttribute('aria-live','polite'));
+document.querySelectorAll('#listaCaminho select').forEach((el,i)=>el.setAttribute('aria-label',CAM[i][0]));
+// Uma alternativa com alvos maiores mantém a localização espacial no desafio.
+const boardHelp=document.createElement('details');boardHelp.className='support';boardHelp.innerHTML='<summary>Mapa por posições • alternativa de navegação</summary><p>Use estes botões ou navegue pela placa com Tab e Enter. No desafio, encontre a região correspondente à peça pedida.</p>';
+const positions={io:'Extremo esquerdo: painel traseiro',atx12v:'Topo esquerdo: conector pequeno',vrm:'Esquerda do soquete: reguladores',cpu:'Centro superior: soquete quadrado',cpufan:'Topo central: quatro pinos',dimm:'Direita superior: quatro encaixes longos',atx24:'Borda direita superior: conector longo',pcie1:'Esquerda central: encaixes curtos',pcie16:'Centro: encaixe horizontal longo',m2:'Abaixo do slot longo: encaixe com parafuso',chipset:'Direita inferior: dissipador quadrado',bat:'Centro inferior: círculo metálico',bios:'Esquerda inferior: chip pequeno',sata:'Borda direita inferior: quatro portas',audio:'Borda inferior esquerda: pinos',fusb:'Borda inferior central: pinos',fpanel:'Borda inferior direita: pinos'};
+Object.entries(positions).forEach(([id,name])=>{const b=document.createElement('button');b.className='btn sec';b.style.margin='4px';b.textContent=name;b.onclick=()=>svg.querySelector('[data-id="'+id+'"]').dispatchEvent(new MouseEvent('click',{bubbles:true}));boardHelp.appendChild(b);});document.getElementById('m2').appendChild(boardHelp);
+
+const MISSIONS=[
+ ['revisao','01 / VISITAS DE CAMPO','Preparar a equipe','Relembrem os conceitos que vão orientar as decisões.',['rev']],
+ ['m1','02 / ASSOCIAÇÃO','Dimensionar o acervo','Calculem o espaço e decidam o que comprar.',['m1','dec']],
+ ['m2','03 / LABORATÓRIO','Mapear as conexões','Encontrem 12 componentes na placa-mãe.',['m2']],
+ ['caminho','04 / FEIRA AGROVIDA','Seguir a foto','Reconstruam o caminho do celular até o monitor.',['cam']],
+ ['casos','05 / ARQUIVO COMUNITÁRIO','Resolver os chamados','Apliquem o conteúdo em seis atendimentos.',['casos']],
+ ['boss','06 / BANCA DE IMPLANTAÇÃO','Defender a solução','Testem o plano e registrem as evidências. ',[]]
+];
+const missionMap=document.getElementById('missionMap');MISSIONS.forEach(([id,label,title,description])=>{const b=document.createElement('button');b.className='mission-tile';b.id='map-'+id;b.innerHTML='<span class="mission-number">'+label+'</span><h3>'+title+'</h3><p>'+description+'</p><span class="status">Abrir chamado →</span>';b.onclick=()=>irPara(id);missionMap.appendChild(b);});
+function testBench(){const drive=document.getElementById('benchDrive').value,protection=document.getElementById('benchProtection').value,backup=document.getElementById('benchBackup').value;const f=document.getElementById('benchFeedback');if(!drive||!protection||!backup){f.textContent='↻ Selecione as três decisões para comparar o plano com as condições do chamado.';return;}const messages=[];messages.push(drive==='sata'?'✓ Capacidade e interface: 240 GB decimais equivalem a cerca de 223,52 GiB, acima dos 143 GiB estimados. SATA é compatível.':drive==='nvme'?'↻ Compatibilidade: o formato M.2 não garante NVMe. O slot deste chamado aceita apenas SATA.':'↻ Persistência: a RAM é volátil e não substitui o disco do sistema.');messages.push(protection==='raid1'?'✓ Continuidade: RAID 1 oferece 1 TB útil e tolera a falha de um dos discos do espelho. Não protege de exclusão ou ransomware.':'↻ Proteção: RAID 0 não tolera a falha de um disco. RAID 1 também exige backup independente.');messages.push(backup==='external'?'✓ Recuperação: planejem três cópias, dois tipos de mídia e uma fora do local. Definam frequência e comprovem a restauração de um arquivo.':'↻ Recuperação: uma cópia sempre ligada ao mesmo PC compartilha riscos. Planejem cópias independentes e uma fora do local.');f.replaceChildren(...messages.map(t=>{const p=document.createElement('p');p.textContent=t;return p;}));if(drive==='sata'&&protection==='raid1'&&backup==='external'){const p=document.createElement('b');p.textContent='Plano coerente com o cenário. Registrem abaixo o porquê das escolhas e os limites do RAID.';f.appendChild(p);}}
+function refreshTerritory(){let complete=0;MISSIONS.forEach(([id,label,title,desc,keys])=>{const done=keys.length?keys.every(k=>XP[k]===MAX[k]):[1,2,3].every(n=>document.getElementById('evidence'+n).value.trim().length>=30);if(done)complete++;const tile=document.getElementById('map-'+id);tile.classList.toggle('done',done);tile.querySelector('.status').textContent=done?(id==='boss'?'✓ Registro pronto para avaliação':'✓ Frente concluída • revisitar'):'Abrir chamado →';});document.getElementById('territoryStatus').textContent=complete+' de 6 frentes concluídas';}
+const previousHud=updateHud;updateHud=function(){previousHud();refreshTerritory();};
+MISSIONS.forEach(([id],i)=>{const section=document.getElementById(id);const next=MISSIONS[i+1];const div=document.createElement('div');div.className='next-stop';const caption=document.createElement('span');caption.textContent=next?'Ao terminar, leve o que aprendeu para a próxima frente.':'Parecer registrado? Reúna as evidências no relatório.';const b=document.createElement('button');b.className='btn';b.id='next-'+id;b.textContent=next?'Próximo: '+next[2]+' →':'Abrir relatório →';b.onclick=()=>irPara(next?next[0]:'relatorio');div.append(caption,b);section.appendChild(div);});
+document.addEventListener('input',()=>refreshTerritory());
+
+document.addEventListener('input',e=>{if(replaying||!e.target.matches('input,textarea,select'))return;historyActions.push({type:'value',selector:selectorFor(e.target),value:e.target.value});saveProgress();});
+document.addEventListener('change',e=>{if(replaying||!e.target.matches('select'))return;historyActions.push({type:'value',selector:selectorFor(e.target),value:e.target.value});saveProgress();});
+document.addEventListener('click',e=>{if(replaying)return;const target=e.target.closest('button,.frente,.hot');if(!target||target.closest('details')||target.matches('[onclick*="exportReport"],[onclick*="print"],[onclick*="resetGame"]'))return;const action={type:'click',selector:selectorFor(target)};historyActions.push(action);queueMicrotask(()=>{saveProgress();updateHud();});},true);
+try{const stored=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]');if(Array.isArray(stored)){replaying=true;for(const action of stored){const target=document.querySelector(action.selector);if(!target)continue;if(action.type==='value')target.value=action.value;else if(action.type==='click')target.dispatchEvent(new MouseEvent('click',{bubbles:true}));}historyActions=stored;replaying=false;saveProgress();}}catch(e){replaying=false;document.getElementById('saveState').textContent='Começando uma nova sessão';}
+updateHud();
+</script>
+</body>
+</html>
